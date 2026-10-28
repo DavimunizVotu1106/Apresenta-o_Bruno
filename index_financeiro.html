@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tech Mach — Monitoramento de Máquinas</title>
+<style>
+:root{
+  --green-900:#1d5c3a;
+  --green-800:#256b43;
+  --green-700:#2f7d52;
+  --green-600:#3a9163;
+  --green-500:#4aa876;
+  --sage:#8fc6a5;
+  --sage-soft:#a9d6bc;
+  --sage-tint:#e9f3ec;
+  --plum:#3a2740;
+  --plum-deep:#2c1d31;
+  --plum-soft:#4a3350;
+  --cream:#f6f9f6;
+  --ink:#1f3327;
+  --ink-soft:#4c6355;
+  --red:#d64545;
+  --red-dark:#b23333;
+  --amber:#e0a422;
+  --amber-dark:#c08a12;
+  --gray:#8a8a94;
+  --line:#cfe3d5;
+  --shadow:0 10px 28px rgba(20,12,24,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+  background:var(--plum);
+  color:var(--ink);
+  font-size:14px;
+}
+.app{display:flex;min-height:100vh}
+
+/* ============ SIDEBAR ============ */
+.sidebar{
+  width:238px;flex:0 0 238px;
+  background:linear-gradient(180deg,var(--green-700),var(--green-900));
+  display:flex;flex-direction:column;
+  border-right:3px solid var(--plum-deep);
+  position:sticky;top:0;height:100vh;
+}
+.brand{
+  display:flex;align-items:center;gap:10px;
+  padding:18px 16px;
+  background:var(--green-800);
+  border-bottom:1px solid rgba(255,255,255,.12);
+}
+.brand h1{color:#fff;font-size:17px;font-weight:600;letter-spacing:.3px}
+.brand small{display:block;color:var(--sage-soft);font-size:10px;font-weight:400;letter-spacing:1.4px;text-transform:uppercase}
+
+.nav{flex:1;overflow-y:auto;padding:10px 0}
+.nav-label{
+  color:var(--sage-soft);font-size:10px;text-transform:uppercase;letter-spacing:1.5px;
+  padding:14px 18px 6px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:11px;width:100%;
+  padding:11px 18px;border:0;cursor:pointer;
+  background:transparent;color:#eaf5ee;
+  font-size:14px;font-family:inherit;text-align:left;
+  border-left:4px solid transparent;
+  transition:background .15s;
+}
+.nav-item svg{width:18px;height:18px;flex:0 0 18px;stroke:var(--sage-soft)}
+.nav-item:hover{background:rgba(255,255,255,.08)}
+.nav-item.active{
+  background:var(--plum-soft);
+  border-left-color:var(--sage);
+  color:#fff;font-weight:600;
+}
+.nav-item.active svg{stroke:#fff}
+.nav-item .badge{
+  margin-left:auto;background:var(--red);color:#fff;
+  font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px;
+}
+.nav-item .caret{margin-left:auto;transition:transform .2s;font-size:10px;color:var(--sage-soft)}
+.nav-item.open .caret{transform:rotate(180deg)}
+.subnav{display:none;background:rgba(0,0,0,.18)}
+.subnav.show{display:block}
+.subnav .nav-item{padding-left:46px;font-size:13px;color:#d9ecdf}
+
+.sidebar-footer{border-top:1px solid rgba(255,255,255,.12);padding:12px}
+.user-mini{display:flex;align-items:center;gap:10px;padding:6px 6px 12px}
+.avatar{
+  width:34px;height:34px;border-radius:50%;flex:0 0 34px;
+  background:var(--sage);color:var(--green-900);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;
+}
+.user-mini .name{color:#fff;font-size:13px;font-weight:600;line-height:1.2}
+.user-mini .role{color:var(--sage-soft);font-size:11px}
+.btn-sair{
+  display:flex;align-items:center;gap:10px;width:100%;
+  background:var(--green-600);border:1px solid rgba(255,255,255,.2);
+  color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;
+  font-size:14px;font-family:inherit;
+}
+.btn-sair:hover{background:var(--green-500)}
+.btn-sair svg{width:18px;height:18px;stroke:#fff}
+
+/* ============ MAIN ============ */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  display:flex;align-items:center;gap:16px;
+  background:var(--plum-deep);
+  padding:12px 24px;
+  border-bottom:3px solid var(--green-700);
+  position:sticky;top:0;z-index:50;
+}
+.search{
+  flex:1;max-width:520px;position:relative;
+}
+.search svg{
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;stroke:var(--sage-soft);
+}
+.search input{
+  width:100%;padding:9px 12px 9px 38px;border-radius:8px;
+  border:1px solid var(--plum-soft);background:var(--plum);
+  color:#fff;font-family:inherit;font-size:13px;
+}
+.search input::placeholder{color:#9d8aa4}
+.search input:focus{outline:none;border-color:var(--sage)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:18px}
+.icon-btn{
+  position:relative;background:transparent;border:0;cursor:pointer;padding:6px;border-radius:8px;
+  display:flex;
+}
+.icon-btn:hover{background:rgba(255,255,255,.08)}
+.icon-btn svg{width:20px;height:20px;stroke:var(--sage-soft)}
+.icon-btn .dot{
+  position:absolute;top:2px;right:0;background:var(--red);color:#fff;
+  font-size:10px;font-weight:700;border-radius:9px;padding:0 5px;line-height:15px;
+}
+.topbar .avatar{width:32px;height:32px;flex:0 0 32px;font-size:12px}
+.topbar-user .name{color:#fff;font-size:12px;font-weight:600;line-height:1.2}
+.topbar-user .role{color:var(--sage-soft);font-size:11px}
+
+.content{padding:24px;display:flex;flex-direction:column;gap:20px}
+.page{display:none;flex-direction:column;gap:20px}
+.page.active{display:flex}
+.page-title{color:#fff;font-size:22px;font-weight:600}
+.page-title span{display:block;color:var(--sage-soft);font-size:13px;font-weight:400;margin-top:3px}
+
+/* ============ PANELS ============ */
+.panel{
+  background:var(--cream);
+  border-radius:12px;overflow:hidden;
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+}
+.panel-head{
+  background:var(--green-700);
+  color:#fff;padding:11px 16px;
+  display:flex;align-items:center;gap:10px;
+  font-size:15px;font-weight:600;
+}
+.panel-head svg{width:18px;height:18px;stroke:#fff}
+.panel-head .link{
+  margin-left:auto;color:var(--sage-soft);font-size:12px;font-weight:500;
+  cursor:pointer;text-decoration:underline;background:none;border:0;font-family:inherit;
+}
+.panel-head .link:hover{color:#fff}
+.panel-body{padding:14px 16px}
+
+/* ============ STAT CARDS ============ */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stat{
+  border-radius:12px;padding:16px;color:#fff;
+  display:flex;align-items:center;gap:13px;box-shadow:var(--shadow);
+}
+.stat .ico{
+  width:40px;height:40px;flex:0 0 40px;border-radius:50%;
+  background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;
+}
+.stat .ico svg{width:20px;height:20px;stroke:#fff}
+.stat .num{font-size:26px;font-weight:700;line-height:1.1}
+.stat .lbl{font-size:12.5px;opacity:.92}
+.stat.green{background:linear-gradient(135deg,var(--green-600),var(--green-800))}
+.stat.red{background:linear-gradient(135deg,#e05656,#b23333)}
+.stat.amber{background:linear-gradient(135deg,#edb53e,#c08a12)}
+.stat.gray{background:linear-gradient(135deg,#9a9aa4,#73737d)}
+
+.grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start}
+.grid-1-1{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+
+/* ============ TABLES ============ */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{
+  text-align:left;padding:9px 10px;
+  background:var(--sage);color:var(--green-900);
+  font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;font-weight:700;
+  border-bottom:2px solid var(--green-600);
+}
+td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--ink-soft)}
+tr:hover td{background:var(--sage-tint)}
+td strong{color:var(--ink)}
+.chip{
+  display:inline-block;padding:2px 9px;border-radius:20px;
+  font-size:11.5px;font-weight:600;white-space:nowrap;
+}
+.chip.red{background:#f8dcdc;color:var(--red-dark)}
+.chip.amber{background:#faecc9;color:var(--amber-dark)}
+.chip.green{background:#d6ecdf;color:var(--green-800)}
+.chip.gray{background:#e4e4e9;color:#5f5f69}
+.prio-alta{color:var(--red);font-weight:700}
+.prio-media{color:var(--amber-dark);font-weight:700}
+.mini-red{color:var(--red);font-weight:700}
+
+/* ============ KPI CARDS ============ */
+.kpi{
+  background:var(--cream);border:1px solid var(--line);border-radius:12px;
+  padding:14px 16px;box-shadow:var(--shadow);
+}
+.kpi .kpi-title{font-size:12px;color:var(--ink-soft);font-weight:600;margin-bottom:4px}
+.kpi .kpi-value{font-size:28px;font-weight:700;color:var(--green-800)}
+.kpi .kpi-sub{font-size:12px;margin-top:4px;font-weight:600}
+.kpi .kpi-sub.up{color:var(--green-600)}
+.kpi .kpi-sub.down{color:var(--red)}
+.kpi .kpi-sub span{color:var(--ink-soft);font-weight:400}
+.spark{width:100%;height:34px;margin-top:8px;display:block}
+
+/* ============ MACHINE CARDS ============ */
+.machines-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.mcard{
+  background:var(--cream);border:1px solid var(--line);border-radius:12px;
+  overflow:hidden;box-shadow:var(--shadow);cursor:pointer;
+  transition:transform .12s;
+}
+.mcard:hover{transform:translateY(-2px)}
+.mcard .mhead{
+  background:var(--sage);color:var(--green-900);
+  padding:9px 13px;font-weight:700;font-size:13.5px;
+  display:flex;align-items:center;gap:8px;
+}
+.mcard .mhead svg{width:16px;height:16px;stroke:var(--green-900)}
+.mcard .mhead .chip{margin-left:auto}
+.mcard .mbody{padding:12px 13px;display:flex;flex-direction:column;gap:9px}
+.mrow{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-soft)}
+.mrow b{color:var(--ink)}
+.bar{height:6px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px;background:var(--green-600)}
+.bar i.amber{background:var(--amber)}
+.bar i.red{background:var(--red)}
+
+/* ============ LIST PANELS (imagens da imagem 1) ============ */
+.list-rows{display:flex;flex-direction:column}
+.list-row{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;background:var(--sage);
+  border-bottom:1px solid #fff;color:var(--green-900);
+}
+.list-row:nth-child(even){background:var(--sage-soft)}
+.list-row .txt{font-size:13px}
+.list-row .txt small{display:block;color:var(--ink-soft);font-size:11px}
+.list-row .end{margin-left:auto;font-size:12px;font-weight:700;color:var(--green-900)}
+.notif-row .ico{
+  width:28px;height:28px;flex:0 0 28px;border-radius:50%;
+  background:var(--green-700);display:flex;align-items:center;justify-content:center;
+}
+.notif-row .ico svg{width:14px;height:14px;stroke:#fff}
+.notif-row.unread{background:#dff0e5}
+
+.svc-table th{text-align:center}
+.svc-table td{text-align:center}
+
+/* ============ TABS ============ */
+.tabs{
+  display:flex;gap:2px;border-bottom:2px solid var(--green-700);
+  padding:0 16px;background:var(--cream);
+}
+.tab{
+  background:transparent;border:0;cursor:pointer;font-family:inherit;
+  padding:11px 16px;font-size:13.5px;color:var(--ink-soft);font-weight:600;
+  border-bottom:3px solid transparent;margin-bottom:-2px;
+}
+.tab:hover{color:var(--green-700)}
+.tab.active{color:var(--green-800);border-bottom-color:var(--sage);background:var(--sage-tint)}
+.tabpane{display:none}
+.tabpane.active{display:block}
+
+/* ============ HISTORY HEADER ============ */
+.hist-hero{display:flex;align-items:center;gap:16px;padding:16px}
+.machine-art{
+  width:96px;height:76px;flex:0 0 96px;border-radius:10px;
+  background:linear-gradient(160deg,var(--plum-soft),var(--plum-deep));
+  display:flex;align-items:center;justify-content:center;
+}
+.machine-art svg{width:44px;height:44px;stroke:var(--sage)}
+.hist-hero h3{font-size:20px;color:var(--ink)}
+.hist-hero .chip{margin-top:6px}
+
+/* ============ REPORTS ============ */
+.report-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.date-input{
+  display:flex;align-items:center;gap:8px;
+  background:var(--cream);border:1px solid var(--line);border-radius:8px;
+  padding:8px 12px;color:var(--ink-soft);font-size:13px;
+}
+.date-input svg{width:15px;height:15px;stroke:var(--ink-soft)}
+.btn-primary{
+  background:var(--green-700);color:#fff;border:0;border-radius:8px;
+  padding:10px 18px;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;
+  margin-left:auto;display:flex;align-items:center;gap:8px;
+}
+.btn-primary:hover{background:var(--green-600)}
+.btn-primary svg{width:15px;height:15px;stroke:#fff}
+.legend{display:flex;flex-direction:column;gap:9px;font-size:12.5px;color:var(--ink-soft)}
+.legend .lrow{display:flex;align-items:center;gap:8px}
+.legend .sw{width:11px;height:11px;border-radius:3px}
+.legend .pct{margin-left:auto;font-weight:700;color:var(--ink)}
+.donut-wrap{display:flex;align-items:center;gap:22px}
+.bars{display:flex;align-items:flex-end;gap:7px;height:110px;padding-top:8px}
+.bars .b{flex:1;background:var(--sage);border-radius:4px 4px 0 0;position:relative;min-width:12px}
+.bars .b.hi{background:var(--green-600)}
+.bars-x{display:flex;gap:7px;margin-top:6px;font-size:10px;color:var(--ink-soft)}
+.bars-x span{flex:1;text-align:center;min-width:12px}
+
+/* ============ SETTINGS ============ */
+.set-row{
+  display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);
+}
+.set-row:last-child{border-bottom:0}
+.set-row .info{flex:1}
+.set-row .info b{display:block;color:var(--ink);font-size:13.5px}
+.set-row .info small{color:var(--ink-soft);font-size:12px}
+.switch{
+  width:42px;height:23px;border-radius:12px;background:var(--gray);
+  border:0;cursor:pointer;position:relative;transition:background .2s;flex:0 0 42px;
+}
+.switch::after{
+  content:"";position:absolute;top:3px;left:3px;width:17px;height:17px;
+  border-radius:50%;background:#fff;transition:left .2s;
+}
+.switch.on{background:var(--green-600)}
+.switch.on::after{left:22px}
+select,input.field{
+  padding:8px 10px;border-radius:8px;border:1px solid var(--line);
+  background:#fff;font-family:inherit;font-size:13px;color:var(--ink);
+}
+
+/* ============ EMPTY / TOAST ============ */
+.empty{padding:26px;text-align:center;color:var(--ink-soft);font-size:13.5px}
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:200;
+  background:var(--plum-deep);color:#fff;border-left:4px solid var(--sage);
+  padding:13px 18px;border-radius:10px;box-shadow:var(--shadow);
+  font-size:13.5px;opacity:0;transform:translateY(12px);pointer-events:none;
+  transition:opacity .25s,transform .25s;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media (max-width:1100px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .grid-2-1,.grid-1-1,.grid-3{grid-template-columns:1fr}
+  .sidebar{width:200px;flex-basis:200px}
+}
+
+/* ============ FINANCEIRO NA TELA INICIAL ============ */
+.finance-section{display:flex;flex-direction:column;gap:14px}
+.finance-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;color:#fff}
+.finance-heading h3{font-size:18px;margin-bottom:4px}
+.finance-heading p{color:var(--sage-soft);font-size:12.5px}
+.finance-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.finance-kpi{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:5px}
+.finance-kpi span{font-size:12px;color:var(--ink-soft);font-weight:600}
+.finance-kpi strong{font-size:23px;color:var(--green-800)}
+.finance-kpi small{font-size:11.5px;color:var(--ink-soft)}
+.finance-charts .panel-body{padding:18px}
+.finance-bar-row{margin-bottom:16px}
+.finance-bar-row:last-child{margin-bottom:0}
+.finance-label{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--ink-soft);margin-bottom:6px}
+.finance-label b{color:var(--ink);white-space:nowrap}
+.finance-track{height:10px;border-radius:8px;background:#dce9df;overflow:hidden}
+.finance-track i{height:100%;display:block;border-radius:8px;background:linear-gradient(90deg,var(--sage),var(--green-700))}
+.finance-machine-row{display:grid;grid-template-columns:minmax(100px,1fr) auto auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.finance-machine-row:last-child{border-bottom:0}
+.finance-machine-row strong{font-size:12.5px;color:var(--ink)}
+.finance-machine-row small{display:block;color:var(--ink-soft);font-size:11px;margin-top:3px}
+.finance-machine-row>b{font-size:12.5px;color:var(--ink);white-space:nowrap}
+.approval-panel{border-color:#e8c66d}
+.approval-panel .panel-head{background:#946b0c}
+.approval-count{margin-left:auto;font-size:11px;background:#fff0c2;color:#765500;border-radius:20px;padding:4px 9px}
+.approval-note{padding:12px 15px;background:#fff4d6;color:#765500;border-bottom:1px solid #ead59c;font-size:12.5px}
+.approve-btn,.reject-btn{border:0;border-radius:6px;padding:7px 9px;font:600 11.5px inherit;cursor:pointer;margin:2px;white-space:nowrap}
+.approve-btn{background:#d6ecdf;color:#1d5c3a}
+.reject-btn{background:#f8dcdc;color:#b23333}
+.approve-btn:hover{background:#bce0c9}.reject-btn:hover{background:#f1c4c4}
+.budget-actions{min-width:145px}
+#budgetTable td{vertical-align:middle}
+#budgetTable td small{font-size:10.5px}
+@media(max-width:900px){.finance-kpis{grid-template-columns:1fr}.finance-charts{grid-template-columns:1fr}}
+@media(max-width:600px){.finance-machine-row{grid-template-columns:1fr auto}.finance-machine-row .chip{grid-column:1/-1;justify-self:start}.finance-heading .btn-primary{margin-left:0!important}}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">
+        <img style="height: 46px; border-radius: 15px;" src="_imagens/amandaaaa-removebg-preview.png">
+      </div>
+      <h1>Tech Mach<small>Monitoramento</small></h1>
+    </div>
+
+    <nav class="nav" id="nav">
+      <div class="nav-label">Principal</div>
+      <button class="nav-item active" data-page="inicio">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>
+        Tela Inicial
+      </button>
+      <button class="nav-item" data-page="maquinas">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M7 8V4h4v4M3 13h18M7 17h2M12 17h2M17 17h2"/></svg>
+        Máquinas
+      </button>
+      <button class="nav-item" data-page="servicos">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.1-2.1z"/></svg>
+        Serviços
+        <span class="badge">4</span>
+      </button>
+      <button class="nav-item" data-page="usuarios">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 5a3.5 3.5 0 0 1 0 6.8M17.5 14.2A6.5 6.5 0 0 1 21.5 20"/></svg>
+        Usuários
+      </button>
+      <button class="nav-item" data-page="notificacoes">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        Notificações
+        <span class="badge">3</span>
+      </button>
+      <button class="nav-item" data-page="historico">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        Histórico
+      </button>
+
+      <div class="nav-label">Análise</div>
+      <button class="nav-item" data-page="indicadores">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><rect x="5" y="12" width="3" height="6"/><rect x="10.5" y="8" width="3" height="10"/><rect x="16" y="4" width="3" height="14"/></svg>
+        Indicadores
+      </button>
+      <button class="nav-item" data-page="relatorios">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>
+        Relatórios
+      </button>
+
+      <div class="nav-label">Sistema</div>
+      <button class="nav-item" id="cfgBtn" data-page="configuracoes">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
+        Configurações
+        <span class="caret">▼</span>
+      </button>
+      <div class="subnav" id="cfgSub">
+        <a style="text-decoration: none;" href="atualiza.html" class="nav-item" data-page="configuracoes">Preferências gerais</button>
+        <a style="text-decoration: none;" href="atualiza.html" class="nav-item" data-page="configuracoes">Alertas e notificações</button>
+        <a style="text-decoration: none;" href="atualiza.html" class="nav-item" data-page="configuracoes">Integrações (TI)</a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-mini">
+        <div class="avatar"><img style="height: 46px; border-radius: 110px;" src="bruno_aura.jpg"></div>
+        <div>
+          <div class="name">Bruno Alves de Souza</div>
+          <div class="role">PCP · ADM</div>
+        </div>
+      </div>
+      <button class="btn-sair" onclick="toast('Sessão encerrada. Até logo! 👋')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>
+        Sair
+      </button>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+    <header class="topbar">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="searchInput" type="text" placeholder="Buscar máquina, OS, técnico...">
+      </div>
+
+      <div class="topbar-right">
+
+        <img style="height: 29px; width: 100px;" src="logo-senai1.jpg">
+
+        <button class="icon-btn" onclick="goTo('notificacoes')" title="Notificações">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="dot">3</span>
+        </button>
+        <div class="avatar"><img style="height: 46px; border-radius: 110px;" src="bruno_aura.jpg"></div>
+        <div class="topbar-user">
+          <div class="name">Bruno Alves de Souza</div>
+          <div class="role">PCP . ADM</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ============ PÁGINA: TELA INICIAL ============ -->
+      <section class="page active" id="page-inicio">
+        <h2 class="page-title">Painel Geral<span>Acompanhe o status das máquinas, ocorrências e indicadores em tempo real.</span></h2>
+
+        <div class="stats">
+          <div class="stat green">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M5 12.5 10 17l9-10"/></svg></div>
+            <div><div class="num">39</div><div class="lbl">Operando</div></div>
+          </div>
+          <div class="stat red">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></div>
+            <div><div class="num">3</div><div class="lbl">Paradas</div></div>
+          </div>
+          <div class="stat amber">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.1-2.1z"/></svg></div>
+            <div><div class="num">3</div><div class="lbl">Em manutenção</div></div>
+          </div>
+          <div class="stat gray">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5"/></svg></div>
+            <div><div class="num">0</div><div class="lbl">Reservadas</div></div>
+          </div>
+        </div>
+
+
+        <!-- ============ RELATÓRIO FINANCEIRO E APROVAÇÃO ============ -->
+        <section class="finance-section" aria-label="Relatórios financeiros e aprovação de orçamento">
+          <div class="finance-heading">
+            <div>
+              <h3>Relatórios financeiros de manutenção</h3>
+              <p>Custos por problema e máquina · valores demonstrativos para visualização</p>
+            </div>
+            <button class="btn-primary" style="margin-left:0" onclick="goTo('relatorios')">Ver relatórios completos →</button>
+          </div>
+          <div class="finance-kpis">
+            <div class="finance-kpi"><span>Total gasto com manutenção</span><strong>R$ 18.740,00</strong><small>Custos registrados no período</small></div>
+            <div class="finance-kpi"><span>Orçamentos pendentes</span><strong id="pendingBudgetValue">R$ 7.850,00</strong><small id="pendingBudgetCount">2 solicitações aguardando gerente</small></div>
+            <div class="finance-kpi"><span>Máquina com maior custo</span><strong>Prensa 08</strong><small>R$ 6.200,00 acumulados</small></div>
+          </div>
+          <div class="grid-1-1 finance-charts">
+            <div class="panel">
+              <div class="panel-head">Gastos por problema</div>
+              <div class="panel-body">
+                <div class="finance-bar-row"><div class="finance-label"><span>Vazamento de óleo</span><b>R$ 6.200</b></div><div class="finance-track"><i style="width:100%"></i></div></div>
+                <div class="finance-bar-row"><div class="finance-label"><span>Falha elétrica</span><b>R$ 4.850</b></div><div class="finance-track"><i style="width:78%"></i></div></div>
+                <div class="finance-bar-row"><div class="finance-label"><span>Temperatura alta</span><b>R$ 3.400</b></div><div class="finance-track"><i style="width:55%"></i></div></div>
+                <div class="finance-bar-row"><div class="finance-label"><span>Ruído anormal</span><b>R$ 2.190</b></div><div class="finance-track"><i style="width:35%"></i></div></div>
+                <div class="finance-bar-row"><div class="finance-label"><span>Outros</span><b>R$ 2.100</b></div><div class="finance-track"><i style="width:34%"></i></div></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head">Gastos por máquina</div>
+              <div class="panel-body">
+                <div class="finance-machine-row"><div><strong>Prensa 08</strong><small>Vazamento de óleo</small></div><b>R$ 6.200,00</b><span class="chip red">33%</span></div>
+                <div class="finance-machine-row"><div><strong>CNC 12</strong><small>Falha elétrica</small></div><b>R$ 4.850,00</b><span class="chip amber">26%</span></div>
+                <div class="finance-machine-row"><div><strong>Injetora 02</strong><small>Temperatura alta</small></div><b>R$ 3.400,00</b><span class="chip amber">18%</span></div>
+                <div class="finance-machine-row"><div><strong>CNC 04</strong><small>Ruído anormal</small></div><b>R$ 2.190,00</b><span class="chip green">12%</span></div>
+                <div class="finance-machine-row"><div><strong>Outras máquinas</strong><small>Ocorrências diversas</small></div><b>R$ 2.100,00</b><span class="chip gray">11%</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="panel approval-panel">
+            <div class="panel-head"><span>▣</span> Aprovação de orçamento de manutenção <span class="approval-count" id="approvalCount">2 pendentes</span></div>
+            <div class="panel-body" style="padding:0">
+              <div class="approval-note">Ação necessária: o gerente deve revisar e aprovar ou recusar os valores antes da contratação/execução do serviço.</div>
+              <div style="overflow-x:auto">
+                <table id="budgetTable">
+                  <thead><tr><th>Solicitação</th><th>Máquina / problema</th><th>Fornecedor / serviço</th><th>Orçamento</th><th>Status</th><th>Ação do gerente</th></tr></thead>
+                  <tbody>
+                    <tr data-amount="5200"><td><strong>#ORC-104</strong><br><small>Hoje · Manutenção</small></td><td><strong>Prensa 08</strong><br>Vazamento de óleo</td><td>Reparo hidráulico e vedação</td><td><strong>R$ 5.200,00</strong></td><td class="budget-status"><span class="chip amber">Aguardando aprovação</span></td><td class="budget-actions"><button class="approve-btn" onclick="decideBudget(this,'aprovado')">✓ Aprovar</button><button class="reject-btn" onclick="decideBudget(this,'recusado')">Recusar</button></td></tr>
+                    <tr data-amount="2650"><td><strong>#ORC-105</strong><br><small>Ontem · Manutenção</small></td><td><strong>CNC 12</strong><br>Falha elétrica</td><td>Diagnóstico e troca de componentes</td><td><strong>R$ 2.650,00</strong></td><td class="budget-status"><span class="chip amber">Aguardando aprovação</span></td><td class="budget-actions"><button class="approve-btn" onclick="decideBudget(this,'aprovado')">✓ Aprovar</button><button class="reject-btn" onclick="decideBudget(this,'recusado')">Recusar</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="grid-2-1">
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+              Ocorrências em andamento
+              <button class="link" onclick="goTo('servicos')">Ver todas</button>
+            </div>
+            <div class="panel-body" style="padding:0">
+              <table id="tblOcorrencias">
+                <thead>
+                  <tr><th>Máquina</th><th>Problema</th><th>Tempo parada</th><th>Prioridade</th><th>Status</th><th>Técnico</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>Prensa 08</strong></td><td>Vazamento de óleo</td><td>45 min</td><td class="prio-alta">Alta</td><td><span class="chip amber">Em atendimento</span></td><td>Roberto</td></tr>
+                  <tr><td><strong>CNC 12</strong></td><td>Falha elétrica</td><td class="mini-red">39 min</td><td class="prio-alta">Alta</td><td><span class="chip gray">Aguardando técnico</span></td><td>—</td></tr>
+                  <tr><td><strong>CNC 04</strong></td><td>Ruído anormal</td><td>1 h 12 min</td><td class="prio-media">Média</td><td><span class="chip amber">Em atendimento</span></td><td>João</td></tr>
+                  <tr><td><strong>Injetora 02</strong></td><td>Temperatura alta</td><td>2 h 05 min</td><td class="prio-media">Média</td><td><span class="chip gray">Aguardando peça</span></td><td>—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 5a3.5 3.5 0 0 1 0 6.8M17.5 14.2A6.5 6.5 0 0 1 21.5 20"/></svg>
+              Usuários
+            </div>
+            <div class="list-rows">
+              <div class="list-row"><div class="avatar" style="width:28px;height:28px;flex:0 0 28px;font-size:11px">PV</div><div class="txt">Pabllo Vittar</div><div class="end">ADM</div></div>
+              <div class="list-row"><div class="avatar" style="width:28px;height:28px;flex:0 0 28px;font-size:11px">AN</div><div class="txt">Anitta</div><div class="end">ADM</div></div>
+              <div class="list-row"><div class="avatar" style="width:28px;height:28px;flex:0 0 28px;font-size:11px">LS</div><div class="txt">Luan Santana</div><div class="end">USU</div></div>
+              <div class="list-row"><div class="avatar" style="width:28px;height:28px;flex:0 0 28px;font-size:11px">CL</div><div class="txt">Claudio</div><div class="end">TI</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2-1">
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M7 8V4h4v4M3 13h18"/></svg>
+              Controles de Máquinas
+            </div>
+            <div class="panel-body" style="padding:0">
+              <table>
+                <thead><tr><th>Máquina</th><th>Setor</th><th>Estado</th><th>Uptime</th></tr></thead>
+                <tbody>
+                  <tr onclick="goTo('historico')" style="cursor:pointer"><td><strong>Máquina - 001</strong></td><td>Usinagem</td><td><span class="chip green">Operando</span></td><td>98%</td></tr>
+                  <tr onclick="goTo('historico')" style="cursor:pointer"><td><strong>Máquina - 002</strong></td><td>Montagem</td><td><span class="chip red">Parada</span></td><td>61%</td></tr>
+                  <tr onclick="goTo('historico')" style="cursor:pointer"><td><strong>CNC 07</strong></td><td>Usinagem</td><td><span class="chip green">Operando</span></td><td>95%</td></tr>
+                  <tr onclick="goTo('historico')" style="cursor:pointer"><td><strong>Injetora 02</strong></td><td>Injeção</td><td><span class="chip amber">Manutenção</span></td><td>74%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+              Notificações
+              <button class="link" onclick="goTo('notificacoes')">Ver todas</button>
+            </div>
+            <div class="list-rows" id="notifHome">
+              <div class="list-row notif-row unread"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg></div><div class="txt">Claudio enviou solicitação<small>Chamado #4821 · há 5 min</small></div></div>
+              <div class="list-row notif-row unread"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div><div class="txt">Anitta relatou um problema<small>Prensa 08 · há 18 min</small></div></div>
+              <div class="list-row notif-row"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.1-2.1z"/></svg></div><div class="txt">Peça de reposição chegou<small>Injetora 02 · há 2 h</small></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-1-1">
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.1-2.1z"/></svg>
+              Controles de Serviço
+            </div>
+            <div class="panel-body" style="padding:0">
+              <table class="svc-table">
+                <thead><tr><th>TI</th><th>Mecânico</th></tr></thead>
+                <tbody>
+                  <tr><td>3 chamados abertos</td><td>2 ordens em campo</td></tr>
+                  <tr><td>1 chamado crítico</td><td>1 visita agendada</td></tr>
+                  <tr><td>SLA 96%</td><td>SLA 91%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-title">Indicadores do mês</div>
+            <div class="grid-3" style="margin-top:10px">
+              <div>
+                <div class="kpi-title">MTTR</div>
+                <div class="kpi-value">42 min</div>
+                <div class="kpi-sub up">↓ 12% <span>vs. mês anterior</span></div>
+              </div>
+              <div>
+                <div class="kpi-title">MTBF</div>
+                <div class="kpi-value">186 h</div>
+                <div class="kpi-sub up">↑ 18% <span>vs. mês anterior</span></div>
+              </div>
+              <div>
+                <div class="kpi-title">Disponibilidade</div>
+                <div class="kpi-value">94,2%</div>
+                <div class="kpi-sub up">↑ 2,4% <span>vs. mês anterior</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PÁGINA: MÁQUINAS ============ -->
+      <section class="page" id="page-maquinas">
+        <h2 class="page-title">Máquinas<span>46 máquinas monitoradas · 39 operando · 3 paradas · 3 em manutenção</span></h2>
+        <div class="machines-grid" id="machinesGrid">
+          <div class="mcard" onclick="goTo('historico')">
+            <div class="mhead">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M7 8V4h4v4M3 13h18"/></svg>
+              Máquina - 001 <span class="chip green">Operando</span>
+            </div>
+            <div class="mbody">
+              <div class="mrow"><span>Setor</span><b>Usinagem</b></div>
+              <div class="mrow"><span>Tempo ligada</span><b>7 h 12 min</b></div>
+              <div class="mrow"><span>Uptime</span><b>98%</b></div>
+              <div class="bar"><i style="width:98%"></i></div>
+            </div>
+          </div>
+          <div class="mcard" onclick="goTo('historico')">
+            <div class="mhead">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M7 8V4h4v4M3 13h18"/></svg>
+              Máquina - 002 <span class="chip red">Parada</span>
+            </div>
+            <div class="mbody">
+              <div class="mrow"><span>Setor</span><b>Montagem</b></div>
+              <div class="mrow"><span>Parada há</span><b class="mini-red">39 min</b></div>
+              <div class="mrow"><span>Uptime</span><b>61%</b></div>
+              <div class="bar"><i class="red" style="width:61%"></i></div>
+            </div>
+          </div>
+          <div class="mcard" onclick="goTo('historico')">
+            <div class="mhead">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M7 8V4h4v4M3 13h18"/></svg>
+              CNC 07 <span class="chip green">Operando</span>
+            </div>
+            <div class="mbody">
+              <div class="mrow"><span>Setor</span><b>Usinagem</b></div>
+              <div class="mrow"><span>Tempo ligada</span><b>12 h 40 min</b></div>
+              <div class="mrow"><span>Uptime</span><b>95%</b></div>
+              <div class="bar"><i style="width:95%"></i></div>
+            </div>
+          </div>
+          <div class="mcard" onclick="goTo('historico')">
+            <div class="mhead">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M7 8V4h4v4M3 13h18"/></svg>
+              CNC 12 <span class="chip red">Parada</span>
+            </div>
+            <div class="mbody">
+              <div class="mrow"><span>Setor</span><b>Usinagem</b></div>
+              <div class="mrow"><span>Motivo</span><b>Falha elétrica</b></div>
+              <div class="mrow"><span>Uptime</span><b>58%</b></div>
+              <div class="bar"><i class="red" style="width:58%"></i></div>
+            </div>
+          </div>
+          <div class="mcard" onclick="goTo('historico')">
+            <div class="mhead">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M7 8V4h4v4M3 13h18"/></svg>
+              Injetora 02 <span class="chip amber">Manutenção</span>
+            </div>
+            <div class="mbody">
+              <div class="mrow"><span>Setor</span><b>Injeção</b></div>
+              <div class="mrow"><span>Motivo</span><b>Temperatura alta</b></div>
+              <div class="mrow"><span>Uptime</span><b>74%</b></div>
+              <div class="bar"><i class="amber" style="width:74%"></i></div>
+            </div>
+          </div>
+          <div class="mcard" onclick="goTo('historico')">
+            <div class="mhead">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M7 8V4h4v4M3 13h18"/></svg>
+              Prensa 08 <span class="chip amber">Em atendimento</span>
+            </div>
+            <div class="mbody">
+              <div class="mrow"><span>Setor</span><b>Prensagem</b></div>
+              <div class="mrow"><span>Motivo</span><b>Vazamento de óleo</b></div>
+              <div class="mrow"><span>Uptime</span><b>81%</b></div>
+              <div class="bar"><i class="amber" style="width:81%"></i></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PÁGINA: SERVIÇOS ============ -->
+      <section class="page" id="page-servicos">
+        <h2 class="page-title">Serviços e Ordens de Serviço<span>Ocorrências abertas e ordens de manutenção em andamento.</span></h2>
+
+        <div class="grid-1-1">
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+              Ocorrências
+              <button class="link" onclick="toast('Nova ocorrência registrada ✔')">+ Nova</button>
+            </div>
+            <div class="panel-body" style="padding:0">
+              <table>
+                <thead><tr><th>#</th><th>Máquina</th><th>Problema</th><th>Prioridade</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>#4821</strong></td><td>Prensa 08</td><td>Vazamento de óleo</td><td class="prio-alta">Alta</td><td><span class="chip amber">Em atendimento</span></td></tr>
+                  <tr><td><strong>#4819</strong></td><td>CNC 12</td><td>Falha elétrica</td><td class="prio-alta">Alta</td><td><span class="chip gray">Aguardando técnico</span></td></tr>
+                  <tr><td><strong>#4815</strong></td><td>CNC 04</td><td>Ruído anormal</td><td class="prio-media">Média</td><td><span class="chip amber">Em atendimento</span></td></tr>
+                  <tr><td><strong>#4802</strong></td><td>Injetora 02</td><td>Temperatura alta</td><td class="prio-media">Média</td><td><span class="chip gray">Aguardando peça</span></td></tr>
+                  <tr><td><strong">#4796</strong></td><td>Compressor 03</td><td>Pressão baixa</td><td class="prio-media">Média</td><td><span class="chip green">Resolvida</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.1-2.1z"/></svg>
+              Controles de Serviço · TI e Mecânico
+            </div>
+            <div class="panel-body" style="padding:0">
+              <table class="svc-table">
+                <thead><tr><th>TI</th><th>Mecânico</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Chamado #4821</strong><br>Software de controle travado</td><td><strong>OS #3312</strong><br>Troca de rolamento · CNC 07</td></tr>
+                  <tr><td><strong>Chamado #4820</strong><br>Rede do chão de fábrica instável</td><td><strong>OS #3309</strong><br>Calibração · Prensa 08</td></tr>
+                  <tr><td><strong>Chamado #4816</strong><br>Atualização do sistema SCADA</td><td><strong>OS #3301</strong><br>Limpeza hidráulica · CNC 04</td></tr>
+                  <tr><td>SLA 96%</td><td>SLA 91%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+            Ordens de Serviço
+          </div>
+          <div class="panel-body" style="padding:0">
+            <table>
+              <thead><tr><th>OS</th><th>Máquina</th><th>Tipo</th><th>Técnico</th><th>Prazo</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><strong>OS #3312</strong></td><td>CNC 07</td><td>Corretiva</td><td>João</td><td>Hoje, 17:00</td><td><span class="chip amber">Em execução</span></td></tr>
+                <tr><td><strong>OS #3309</strong></td><td>Prensa 08</td><td>Corretiva</td><td>Roberto</td><td>Hoje, 15:30</td><td><span class="chip amber">Em execução</span></td></tr>
+                <tr><td><strong>OS #3301</strong></td><td>CNC 04</td><td>Preventiva</td><td>Carlos</td><td>Amanhã</td><td><span class="chip green">Agendada</span></td></tr>
+                <tr><td><strong>OS #3298</strong></td><td>Injetora 02</td><td>Corretiva</td><td>Roberto</td><td>Aguardando peça</td><td><span class="chip gray">Pausada</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PÁGINA: USUÁRIOS ============ -->
+      <section class="page" id="page-usuarios">
+        <h2 class="page-title">Usuários<span>Gerencie permissões da equipe de manutenção, TI e PCP.</span></h2>
+        <div class="panel">
+          <div class="panel-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 5a3.5 3.5 0 0 1 0 6.8M17.5 14.2A6.5 6.5 0 0 1 21.5 20"/></svg>
+            Usuários cadastrados
+            <button class="link" onclick="toast('Convite enviado para novo usuário ✔')">+ Convidar</button>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <table>
+              <thead><tr><th>Usuário</th><th>Setor</th><th>Perfil</th><th>Status</th><th>Último acesso</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Carlos Eduardo</strong></td><td>PCP</td><td><span class="chip green">ADM</span></td><td><span class="chip green">Online</span></td><td>Agora</td></tr>
+                <tr><td><strong>Pabllo Vittar</strong></td><td>Gestão</td><td><span class="chip green">ADM</span></td><td><span class="chip green">Online</span></td><td>Hoje, 08:12</td></tr>
+                <tr><td><strong>Anitta</strong></td><td>Manutenção</td><td><span class="chip green">ADM</span></td><td><span class="chip gray">Offline</span></td><td>Ontem, 18:40</td></tr>
+                <tr><td><strong>Luan Santana</strong></td><td>Operação</td><td><span class="chip gray">USU</span></td><td><span class="chip gray">Offline</span></td><td>Ontem, 16:05</td></tr>
+                <tr><td><strong>Claudio</strong></td><td>TI</td><td><span class="chip amber">TI</span></td><td><span class="chip green">Online</span></td><td>Hoje, 09:31</td></tr>
+                <tr><td><strong>Roberto</strong></td><td>Manutenção</td><td><span class="chip gray">USU</span></td><td><span class="chip green">Em campo</span></td><td>Hoje, 07:58</td></tr>
+                <tr><td><strong>João</strong></td><td>Manutenção</td><td><span class="chip gray">USU</span></td><td><span class="chip green">Em campo</span></td><td>Hoje, 08:02</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PÁGINA: NOTIFICAÇÕES ============ -->
+      <section class="page" id="page-notificacoes">
+        <h2 class="page-title">Notificações<span>Alertas de máquinas, solicitações da equipe e eventos do sistema.</span></h2>
+        <div class="panel">
+          <div class="panel-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            Central de notificações
+            <button class="link" onclick="markAllRead()">Marcar todas como lidas</button>
+          </div>
+          <div class="list-rows" id="notifList">
+            <div class="list-row notif-row unread"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg></div><div class="txt">Claudio enviou solicitação<small>Chamado #4821 · TI · há 5 min</small></div></div>
+            <div class="list-row notif-row unread"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div><div class="txt">Anitta relatou um problema<small>Prensa 08 · vazamento de óleo · há 18 min</small></div></div>
+            <div class="list-row notif-row unread"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></div><div class="txt">CNC 12 parou inesperadamente<small>Falha elétrica · há 39 min</small></div></div>
+            <div class="list-row notif-row"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.1-2.1z"/></svg></div><div class="txt">Peça de reposição chegou ao almoxarifado<small>Injetora 02 · há 2 h</small></div></div>
+            <div class="list-row notif-row"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"/></svg></div><div class="txt">OS #3312 concluída por João<small>Troca de rolamento · CNC 07 · há 4 h</small></div></div>
+            <div class="list-row notif-row"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="txt">Manutenção preventiva agendada<small>CNC 04 · amanhã, 08:00</small></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PÁGINA: HISTÓRICO ============ -->
+      <section class="page" id="page-historico">
+        <h2 class="page-title">Histórico da Máquina</h2>
+        <div class="panel">
+          <div class="panel-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            Máquina
+            <select id="histSelect" style="margin-left:12px;padding:5px 9px;border-radius:6px;border:0;font-family:inherit;font-size:12.5px">
+              <option>CNC 07</option><option>Máquina - 001</option><option>Máquina - 002</option><option>CNC 12</option><option>Injetora 02</option><option>Prensa 08</option>
+            </select>
+          </div>
+          <div class="hist-hero">
+            <div class="machine-art">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="12" rx="1.5"/><path d="M7 7V4h5v3M2 12h20M6 15h3M12 15h2M17 15h2"/></svg>
+            </div>
+            <div>
+              <h3 id="histName">CNC 07</h3>
+              <span class="chip green">● Operando · Usinagem</span>
+              <div style="color:var(--ink-soft);font-size:12.5px;margin-top:8px">Última parada: 20/07/2025 · Total de manutenções: 12 (2025)</div>
+            </div>
+          </div>
+
+          <div class="tabs" id="histTabs">
+            <button class="tab" data-tab="h-resumo">Resumo</button>
+            <button class="tab active" data-tab="h-manut">Histórico de Manutenções</button>
+            <button class="tab" data-tab="h-pecas">Peças Utilizadas</button>
+            <button class="tab" data-tab="h-ind">Indicadores</button>
+          </div>
+
+          <div class="tabpane" id="h-resumo">
+            <div class="panel-body">
+              <div class="grid-3">
+                <div class="kpi" style="box-shadow:none"><div class="kpi-title">Estado atual</div><div class="kpi-value" style="font-size:20px">Operando</div><div class="kpi-sub up">Ligada há 12 h 40 min</div></div>
+                <div class="kpi" style="box-shadow:none"><div class="kpi-title">Produção hoje</div><div class="kpi-value" style="font-size:20px">418 pcs</div><div class="kpi-sub up">Meta: 400 pcs</div></div>
+                <div class="kpi" style="box-shadow:none"><div class="kpi-title">Temperatura</div><div class="kpi-value" style="font-size:20px">64 °C</div><div class="kpi-sub up">Dentro do padrão</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tabpane active" id="h-manut">
+            <div class="panel-body" style="padding:0">
+              <table>
+                <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Técnico</th><th>Tempo parada</th></tr></thead>
+                <tbody>
+                  <tr><td>05/09/2025</td><td><span class="chip amber">Corretiva</span></td><td>Troca de rolamento</td><td>João</td><td>3 h 40 min</td></tr>
+                  <tr><td>12/08/2025</td><td><span class="chip green">Preventiva</span></td><td>Limpeza e identificação</td><td>Carlos</td><td>1 h 15 min</td></tr>
+                  <tr><td>03/08/2025</td><td><span class="chip amber">Corretiva</span></td><td>Falha hidráulica</td><td>Roberto</td><td>2 h 05 min</td></tr>
+                  <tr><td>20/07/2025</td><td><span class="chip green">Preventiva</span></td><td>Inspeção geral</td><td>Carlos</td><td>0 h 50 min</td></tr>
+                  <tr><td>28/06/2025</td><td><span class="chip green">Preventiva</span></td><td>Troca de filtros</td><td>João</td><td>1 h 00 min</td></tr>
+                  <tr><td>09/06/2025</td><td><span class="chip amber">Corretiva</span></td><td>Ruído anormal no eixo</td><td>Roberto</td><td>2 h 30 min</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tabpane" id="h-pecas">
+            <div class="panel-body" style="padding:0">
+              <table>
+                <thead><tr><th>Data</th><th>Peça</th><th>Quantidade</th><th>Fornecedor</th><th>Custo</th></tr></thead>
+                <tbody>
+                  <tr><td>05/09/2025</td><td>Rolamento SKF 6208</td><td>2</td><td>Indústria Norte</td><td>R$ 380,00</td></tr>
+                  <tr><td>03/08/2025</td><td>Bomba hidráulica HP-200</td><td>1</td><td>Hidrotec</td><td>R$ 1.240,00</td></tr>
+                  <tr><td>28/06/2025</td><td>Filtro de óleo ISO 45</td><td>4</td><td>Indústria Norte</td><td>R$ 210,00</td></tr>
+                  <tr><td>12/08/2025</td><td>Kit de vedação</td><td>1</td><td>Hidrotec</td><td>R$ 145,00</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tabpane" id="h-ind">
+            <div class="panel-body">
+              <div class="grid-3">
+                <div class="kpi" style="box-shadow:none"><div class="kpi-title">MTTR</div><div class="kpi-value">42 min</div><div class="kpi-sub up">↓ 12% <span>vs. mês anterior</span></div></div>
+                <div class="kpi" style="box-shadow:none"><div class="kpi-title">MTBF</div><div class="kpi-value">186 h</div><div class="kpi-sub up">↑ 18% <span>vs. mês anterior</span></div></div>
+                <div class="kpi" style="box-shadow:none"><div class="kpi-title">Disponibilidade</div><div class="kpi-value">94,2%</div><div class="kpi-sub up">↑ 2,4% <span>vs. mês anterior</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-body" style="padding:10px 16px 16px">
+            <button class="btn-primary" style="margin-left:0" onclick="toast('Relatório completo da máquina gerado 📄')">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+              Ver relatório completo
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PÁGINA: INDICADORES ============ -->
+      <section class="page" id="page-indicadores">
+        <h2 class="page-title">Indicadores<span>Desempenho da planta nos últimos 9 meses.</span></h2>
+        <div class="grid-1-1">
+          <div class="kpi">
+            <div class="kpi-title">MTTR (Tempo Médio de Reparo)</div>
+            <div class="kpi-value">42 min</div>
+            <div class="kpi-sub down">↓ 12% <span>vs. mês anterior</span></div>
+            <svg class="spark" viewBox="0 0 260 40" preserveAspectRatio="none">
+              <polyline fill="none" stroke="#2f7d52" stroke-width="2" points="0,32 30,26 60,29 90,20 120,23 150,14 180,18 210,10 240,12 260,7"/>
+              <polygon fill="rgba(47,125,82,.12)" points="0,32 30,26 60,29 90,20 120,23 150,14 180,18 210,10 240,12 260,7 260,40 0,40"/>
+            </svg>
+          </div>
+          <div class="kpi">
+            <div class="kpi-title">MTBF (Tempo Médio Entre Falhas)</div>
+            <div class="kpi-value">186 h</div>
+            <div class="kpi-sub up">↑ 18% <span>vs. mês anterior</span></div>
+            <svg class="spark" viewBox="0 0 260 40" preserveAspectRatio="none">
+              <polyline fill="none" stroke="#4aa876" stroke-width="2" points="0,30 30,32 60,24 90,26 120,18 150,21 180,12 210,15 240,8 260,5"/>
+              <polygon fill="rgba(74,168,118,.12)" points="0,30 30,32 60,24 90,26 120,18 150,21 180,12 210,15 240,8 260,5 260,40 0,40"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><rect x="5" y="12" width="3" height="6"/><rect x="10.5" y="8" width="3" height="10"/><rect x="16" y="4" width="3" height="14"/></svg>
+            Disponibilidade da planta
+          </div>
+          <div class="panel-body">
+            <div class="bars">
+              <div class="b" style="height:72%"></div><div class="b" style="height:80%"></div><div class="b" style="height:65%"></div>
+              <div class="b" style="height:88%"></div><div class="b hi" style="height:94%"></div><div class="b" style="height:83%"></div>
+              <div class="b" style="height:90%"></div><div class="b hi" style="height:96%"></div><div class="b hi" style="height:92%"></div>
+            </div>
+            <div class="bars-x"><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Set</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PÁGINA: RELATÓRIOS ============ -->
+      <section class="page" id="page-relatorios">
+        <h2 class="page-title">Relatórios e Indicadores</h2>
+
+        <div class="panel">
+          <div class="tabs" id="repTabs" style="background:transparent;padding-top:8px">
+            <button class="tab active" data-tab="r-mtbf">MTTR / MTBF</button>
+            <button class="tab" data-tab="r-custos">Custos</button>
+            <button class="tab" data-tab="r-disp">Disponibilidade</button>
+            <button class="tab" data-tab="r-ocor">Ocorrências</button>
+          </div>
+
+          <div class="panel-body">
+            <div class="report-toolbar" style="margin-bottom:16px">
+              <div class="date-input">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+                01/09/2025 — 30/09/2025
+              </div>
+              <button class="btn-primary" onclick="toast('Relatório gerado e enviado por e-mail 📧')">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
+                Gerar relatório
+              </button>
+            </div>
+
+            <div class="tabpane active" id="r-mtbf">
+              <div class="grid-1-1">
+                <div class="kpi" style="box-shadow:none">
+                  <div class="kpi-title">MTTR (Tempo Médio de Reparo)</div>
+                  <div class="kpi-value">42 min</div>
+                  <div class="kpi-sub down">↓ 12% <span>vs. mês anterior</span></div>
+                  <svg class="spark" viewBox="0 0 260 40" preserveAspectRatio="none"><polyline fill="none" stroke="#2f7d52" stroke-width="2" points="0,32 30,26 60,29 90,20 120,23 150,14 180,18 210,10 240,12 260,7"/></svg>
+                </div>
+                <div class="kpi" style="box-shadow:none">
+                  <div class="kpi-title">MTBF (Tempo Médio Entre Falhas)</div>
+                  <div class="kpi-value">186 h</div>
+                  <div class="kpi-sub up">↑ 18% <span>vs. mês anterior</span></div>
+                  <svg class="spark" viewBox="0 0 260 40" preserveAspectRatio="none"><polyline fill="none" stroke="#4aa876" stroke-width="2" points="0,30 30,32 60,24 90,26 120,18 150,21 180,12 210,15 240,8 260,5"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="tabpane" id="r-custos">
+              <div class="kpi" style="box-shadow:none">
+                <div class="kpi-title">Custo de manutenção</div>
+                <div class="kpi-value">R$ 28.450</div>
+                <div class="kpi-sub up">↓ 6% <span>vs. mês anterior</span></div>
+                <div class="bars" style="height:90px">
+                  <div class="b" style="height:55%"></div><div class="b" style="height:70%"></div><div class="b" style="height:48%"></div>
+                  <div class="b" style="height:82%"></div><div class="b" style="height:60%"></div><div class="b" style="height:74%"></div>
+                  <div class="b hi" style="height:88%"></div><div class="b" style="height:66%"></div><div class="b" style="height:52%"></div>
+                </div>
+                <div class="bars-x"><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Set</span></div>
+              </div>
+            </div>
+
+            <div class="tabpane" id="r-disp">
+              <div class="kpi" style="box-shadow:none">
+                <div class="kpi-title">Disponibilidade geral</div>
+                <div class="kpi-value">94,2%</div>
+                <div class="kpi-sub up">↑ 2,4% <span>vs. mês anterior</span></div>
+                <div class="bar" style="height:12px;margin-top:14px"><i style="width:94%"></i></div>
+                <div style="font-size:12px;color:var(--ink-soft);margin-top:8px">39 máquinas operando · 3 paradas · 3 em manutenção · 0 reservadas</div>
+              </div>
+            </div>
+
+            <div class="tabpane" id="r-ocor">
+              <div class="donut-wrap">
+                <svg width="150" height="150" viewBox="0 0 42 42">
+                  <circle cx="21" cy="21" r="15.9" fill="none" stroke="#e4e4e9" stroke-width="6"/>
+                  <circle cx="21" cy="21" r="15.9" fill="none" stroke="#2f7d52" stroke-width="6" stroke-dasharray="32 68" stroke-dashoffset="25"/>
+                  <circle cx="21" cy="21" r="15.9" fill="none" stroke="#8fc6a5" stroke-width="6" stroke-dasharray="24 76" stroke-dashoffset="93"/>
+                  <circle cx="21" cy="21" r="15.9" fill="none" stroke="#e0a422" stroke-width="6" stroke-dasharray="20 80" stroke-dashoffset="69"/>
+                  <circle cx="21" cy="21" r="15.9" fill="none" stroke="#d64545" stroke-width="6" stroke-dasharray="24 76" stroke-dashoffset="49"/>
+                </svg>
+                <div style="flex:1">
+                  <div class="kpi-title" style="margin-bottom:10px">Tipos de falhas</div>
+                  <div class="legend">
+                    <div class="lrow"><span class="sw" style="background:#2f7d52"></span> Hidráulica <span class="pct">32%</span></div>
+                    <div class="lrow"><span class="sw" style="background:#8fc6a5"></span> Elétrica <span class="pct">24%</span></div>
+                    <div class="lrow"><span class="sw" style="background:#e0a422"></span> Mecânica <span class="pct">20%</span></div>
+                    <div class="lrow"><span class="sw" style="background:#d64545"></span> Outros <span class="pct">24%</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PÁGINA: CONFIGURAÇÕES ============ -->
+      <section class="page" id="page-configuracoes">
+        <h2 class="page-title">Configurações<span>Preferências gerais, alertas e integrações do sistema.</span></h2>
+        <div class="grid-1-1">
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
+              Preferências gerais
+            </div>
+            <div class="panel-body">
+              <div class="set-row">
+                <div class="info"><b>Tema escuro (plum)</b><small>Fundo escuro com destaques em verde</small></div>
+                <button class="switch on" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="set-row">
+                <div class="info"><b>Atualização em tempo real</b><small>Atualizar status das máquinas a cada 10 s</small></div>
+                <button class="switch on" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="set-row">
+                <div class="info"><b>Idioma do sistema</b></div>
+                <select><option>Português (Brasil)</option><option>Español</option><option>English</option></select>
+              </div>
+              <div class="set-row">
+                <div class="info"><b>Intervalo de manutenção preventiva</b></div>
+                <select><option>30 dias</option><option>60 dias</option><option>90 dias</option></select>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+              Alertas e notificações
+            </div>
+            <div class="panel-body">
+              <div class="set-row">
+                <div class="info"><b>Alerta de máquina parada</b><small>Avisar quando uma máquina parar por mais de 15 min</small></div>
+                <button class="switch on" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="set-row">
+                <div class="info"><b>Notificações por e-mail</b><small>Resumo diário às 18:00 para gestores</small></div>
+                <button class="switch on" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="set-row">
+                <div class="info"><b>Integração TI (SCADA)</b><small>Sincronizar dados dos sensores com o sistema da TI</small></div>
+                <button class="switch" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="set-row">
+                <div class="info"><b>Backup automático dos dados</b><small>Toda madrugada às 03:00</small></div>
+                <button class="switch on" onclick="this.classList.toggle('on')"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== Navegação ===== */
+function goTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const el=document.getElementById('page-'+page);
+  if(el) el.classList.add('active');
+  document.querySelectorAll('#nav > .nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+  if(page!=='configuracoes'){document.getElementById('cfgSub').classList.remove('show');document.getElementById('cfgBtn').classList.remove('open');}
+  window.scrollTo({top:0});
+  document.getElementById('searchInput').value='';
+  applySearch('');
+}
+document.querySelectorAll('.nav-item[data-page]').forEach(btn=>{
+  btn.addEventListener('click',e=>{
+    if(btn.id==='cfgBtn'){
+      document.getElementById('cfgSub').classList.toggle('show');
+      btn.classList.toggle('open');
+    }
+    goTo(btn.dataset.page);
+  });
+});
+
+/* ===== Tabs (histórico e relatórios) ===== */
+function wireTabs(tabsId){
+  const wrap=document.getElementById(tabsId);
+  if(!wrap) return;
+  wrap.querySelectorAll('.tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      wrap.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      const container=wrap.parentElement;
+      container.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('active'));
+      const pane=container.querySelector('#'+tab.dataset.tab);
+      if(pane) pane.classList.add('active');
+    });
+  });
+}
+wireTabs('histTabs');
+wireTabs('repTabs');
+
+/* ===== Nome da máquina no histórico ===== */
+document.getElementById('histSelect').addEventListener('change',e=>{
+  document.getElementById('histName').textContent=e.target.value;
+});
+
+/* ===== Busca global ===== */
+function applySearch(q){
+  q=q.trim().toLowerCase();
+  document.querySelectorAll('.page.active table tbody tr').forEach(tr=>{
+    tr.style.display=!q||tr.textContent.toLowerCase().includes(q)?'':'none';
+  });
+  document.querySelectorAll('.page.active .mcard').forEach(c=>{
+    c.style.display=!q||c.textContent.toLowerCase().includes(q)?'':'none';
+  });
+}
+document.getElementById('searchInput').addEventListener('input',e=>applySearch(e.target.value));
+
+/* ===== Notificações ===== */
+function markAllRead(){
+  document.querySelectorAll('.notif-row.unread').forEach(r=>r.classList.remove('unread'));
+  document.querySelectorAll('.badge').forEach(b=>b.remove());
+  document.querySelectorAll('.icon-btn .dot').forEach(d=>d.remove());
+  toast('Todas as notificações marcadas como lidas ✔');
+}
+
+
+/* ===== Aprovação de orçamento ===== */
+function decideBudget(button, decision){
+  const row=button.closest('tr');
+  if(!row || row.dataset.decided==='true') return;
+  row.dataset.decided='true';
+  const status=row.querySelector('.budget-status');
+  const actions=row.querySelector('.budget-actions');
+  const amount=Number(row.dataset.amount||0);
+  if(decision==='aprovado'){
+    status.innerHTML='<span class="chip green">Aprovado pelo gerente</span>';
+    toast('Orçamento '+row.cells[0].innerText.split('\n')[0]+' aprovado ✔');
+  }else{
+    status.innerHTML='<span class="chip red">Orçamento recusado</span>';
+    toast('Orçamento '+row.cells[0].innerText.split('\n')[0]+' recusado');
+  }
+  actions.innerHTML='<span style="font-size:11px;color:var(--ink-soft)">Decisão registrada</span>';
+  const pending=[...document.querySelectorAll('#budgetTable tbody tr')].filter(r=>r.dataset.decided!=='true');
+  document.getElementById('approvalCount').textContent=pending.length+' pendentes';
+  document.getElementById('pendingBudgetCount').textContent=pending.length+' solicitações aguardando gerente';
+  document.getElementById('pendingBudgetValue').textContent=pending.reduce((sum,r)=>sum+Number(r.dataset.amount||0),0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+}
+
+/* ===== Toast ===== */
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+</body>
+</html>
